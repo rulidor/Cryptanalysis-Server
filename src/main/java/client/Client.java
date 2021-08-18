@@ -16,9 +16,25 @@ public class Client {
             //reading from server
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            //object of the scanner class
+            //object of scanner class
             Scanner scanner = new Scanner(System.in);
             String line = null;
+
+            while(!"exit".equalsIgnoreCase(line)){
+
+                //reading from user
+                line = scanner.nextLine();
+
+                //sending the user input to the server
+                out.println(line);
+                out.flush();
+
+                //displaying server reply
+                System.out.println("Server replied: " + in.readLine());
+            }
+
+            //closing scanner object
+            scanner.close();
 
         }catch (Exception e){
             e.printStackTrace();
