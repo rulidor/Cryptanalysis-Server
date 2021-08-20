@@ -6,12 +6,13 @@ import java.util.Scanner;
 public class Client {
 
     public static void main(String[] args) throws IOException{
+        PrintWriter out = null;
 
         //start connection by providing host and port
         try(Socket socket = new Socket("localhost", 3000)){
 
 //            //writing to server
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            out = new PrintWriter(socket.getOutputStream(), true);
 
             //reading from server
             InputStreamReader in = new InputStreamReader(socket.getInputStream());
@@ -71,11 +72,19 @@ public class Client {
                     line = bf.readLine();
                     System.out.println("Server replied: " + line);
 
+                    //receiving path for text file and parsing it
+                    String text = getPathForTxtFileAndParseIt();
+
+                    out.print(text);
+                    out.flush();
+                    out.close();
+
 
 
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
+
 
             }
 
@@ -85,6 +94,32 @@ public class Client {
         }catch (Exception e){
             e.printStackTrace();
         }
+
+
+    }
+
+    public static String getPathForTxtFileAndParseIt(){
+        Scanner scanner = new Scanner(System.in);
+        String path = scanner.nextLine();
+        String res = "";
+
+        File file = new File(path);
+
+        try{
+            Scanner fileScanner = new Scanner(file);
+
+            while (fileScanner.hasNextLine()) {
+                String fileLine = fileScanner.nextLine();
+                res += fileLine + "\n";
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        System.out.println("debug: res is:\n");
+        System.out.println(res);
+
+        return res;
 
     }
 }
