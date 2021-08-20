@@ -47,7 +47,7 @@ public class Server {
     private static class ClientHandler implements Runnable{
         private Socket clientSocket;
 
-        private Map<String, String> codeMap;
+        private Map<String, String> codeMap; //key: letter, value: code
 
 
         public ClientHandler(Socket socket){
@@ -109,9 +109,61 @@ public class Server {
                 }
                 System.out.println(res);
 
+
+                int counter = 0;
+                String[] txtTokens = res.split("\\s+");
+                for(int i= 0; i<txtTokens.length; i++ ){
+                    counter += txtTokens[i].length();
+                }
+//
+//                System.out.println("*** # of letters in text to be encoded: " + counter);
+
+
                 res = encodeText(res);
+                counter = 0;
+                txtTokens = res.split("\\s+");
+                counter = txtTokens.length;
+
+//                System.out.println("*** # of letters in the encoded txt: " + counter);
+
 
                 System.out.println(res);
+
+                System.out.println("Writing to file ...");
+                PrintWriter writer = new PrintWriter("encoded_text.txt", "UTF-8");
+                writer.print(res);
+                writer.close();
+
+                System.out.println("Done!");
+
+                System.out.println("Server is now predicting letters, according to frequency analysis:");
+
+                Decoder decoder = new Decoder();
+                Map<String, String> predictedMap = decoder.makePrediction(res);
+
+                System.out.println("Answer from decoder is: " + predictedMap);
+
+
+
+                Map<String, String> myNewHashMap = new HashMap<>();
+                for(Map.Entry<String, String> entry : predictedMap.entrySet()){
+                    myNewHashMap.put(entry.getValue(), entry.getKey());
+                }
+
+                System.out.println("myNewHashMap is: " + myNewHashMap);
+                int accuracy_counter = 0;
+                for(String k : myNewHashMap.keySet()){
+                    if( !codeMap.keySet().contains(k) )
+                        continue;
+                    if( myNewHashMap.get(k).equals(codeMap.get(k)))
+                        accuracy_counter++;
+                }
+
+                System.out.println("accuracy_counter = " + accuracy_counter);
+                double accuracy = accuracy_counter / 26.0;
+                System.out.println("Accuracy of the prediction: " + accuracy);
+                System.out.println("codeMap is: "+ codeMap);
+
 
 
             }catch (Exception e){
