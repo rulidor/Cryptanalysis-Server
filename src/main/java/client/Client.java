@@ -10,27 +10,73 @@ public class Client {
         //start connection by providing host and port
         try(Socket socket = new Socket("localhost", 3000)){
 
-            //writing to server
+//            //writing to server
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
             //reading from server
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            InputStreamReader in = new InputStreamReader(socket.getInputStream());
+            BufferedReader bf = new BufferedReader(in);
+            String line = null;
 
+            while( (line = bf.readLine()) != null ){
+                //writing the received message from server
+                System.out.println("Server replied: " + line);
+                if(line.equals("The format should be as: 'a:._', and a separate line for each letter"))
+                    break;
+            }
             //object of scanner class
             Scanner scanner = new Scanner(System.in);
-            String line = null;
 
             while(!"exit".equalsIgnoreCase(line)){
 
                 //reading from user
                 line = scanner.nextLine();
 
-                //sending the user input to the server
                 out.println(line);
                 out.flush();
 
-                //displaying server reply
-                System.out.println("Server replied: " + in.readLine());
+                //Reading from file
+                //
+                // Create an instance of File for data.txt file.
+                //
+                File file = new File(line);
+                String dictionary = "";
+
+                try {
+                    //
+                    // Create a new Scanner object which will read the data from the
+                    // file passed in. To check if there are more line to read from it
+                    // we check by calling the scanner.hasNextLine() method. We then
+                    // read line one by one till all line is read.
+                    //
+
+                    System.out.println("received path is: "+line);
+                    Scanner fileScanner = new Scanner(file);
+                    while (fileScanner.hasNextLine()) {
+                        String fileLine = fileScanner.nextLine();
+                        System.out.println("debug: fileLine is: "+ fileLine);
+                        String[] lineTokens = fileLine.split(":");
+                        dictionary += lineTokens[0] + ":" + lineTokens[1] + ",";
+                    }
+
+                    System.out.println("dictionary: " + dictionary);
+
+                    //writing to server
+                    out = new PrintWriter(socket.getOutputStream());
+                    out.println(dictionary);
+                    out.flush();
+
+                    in = new InputStreamReader(socket.getInputStream());
+                    bf = new BufferedReader(in);
+                    line = bf.readLine();
+                    System.out.println("Server replied: " + line);
+
+
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+
             }
 
             //closing scanner object

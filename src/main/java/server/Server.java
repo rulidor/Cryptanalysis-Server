@@ -1,6 +1,8 @@
 package server;
 import java.net.*;
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Server {
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -49,22 +51,46 @@ public class Server {
 
         public void run(){
             PrintWriter out = null;
-            BufferedReader in = null;
+            BufferedReader bf = null;
             try{
 
-                //get the output stream of client
-                out = new PrintWriter(clientSocket.getOutputStream(), true);
+                //writing to client
+                out = new PrintWriter(clientSocket.getOutputStream());
+                out.println("Connected to server.");
+                out.println("Please specify absolut path for the code dictionary text file.");
+                out.println("The format should be as: 'a:._', and a separate line for each letter");
+                out.flush();
 
-                //get input stream of client
-                in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-                String line;
-                while( (line = in.readLine()) != null ){
+                //reading path from client
+                InputStreamReader in = new InputStreamReader(clientSocket.getInputStream());
+                bf = new BufferedReader(in);
+                String line = null;
+                while( (line = bf.readLine()) == null ){
 
-                    //writing the received messagefrom client
-                    System.out.println("Sent from client: " + line);
-                    out.println(line);
                 }
+                //writing the received message from client
+                System.out.println("Client sent: " + line);
+
+
+                in = new InputStreamReader(clientSocket.getInputStream());
+                bf = new BufferedReader(in);
+                line = bf.readLine();
+                String[] dictionary = line.split(",");
+                Map<String, String> codeMap = new HashMap<>();
+                for(int i = 0; i< 26; i++){
+                    String[] letterTokens = dictionary[i].split(":");
+                    codeMap.put(letterTokens[0], letterTokens[1]);
+                }
+
+                System.out.println("Received dictionary:");
+                for (String letter : codeMap.keySet()) {
+                    System.out.println("letter: "+ letter + ", code: " + codeMap.get(letter));
+                }
+
+                out.println("Enter a path for text file to be encoded: ");
+                out.flush();
+
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -72,8 +98,8 @@ public class Server {
                 try{
                     if (out != null)
                         out.close();
-                    if (in != null) {
-                        in.close();
+                    if (bf != null) {
+                        bf.close();
                         clientSocket.close();
                     }
                 }catch (Exception e){
